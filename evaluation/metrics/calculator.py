@@ -12,6 +12,7 @@ from evaluation.models import (
     GroundTruthDataset,
     MetricScores,
 )
+from evaluation.video_id_utils import normalize_video_id
 
 
 # Define the 19 annotation categories
@@ -115,7 +116,8 @@ class MetricsCalculator:
         self,
         ground_truth: GroundTruthDataset,
         min_support: int = 0,
-        min_frequency_threshold: float = 0.0,
+        min_frequency_threshold: float = 0.05,
+        treat_dominant_as_present: bool = True,
     ):
         """
         Initialize the metrics calculator.
@@ -125,10 +127,13 @@ class MetricsCalculator:
             min_support: Minimum support (count) for a category to be included in metrics
             min_frequency_threshold: Minimum frequency (0.0-1.0) for a category to be included.
                                     Categories with frequency below this threshold are excluded.
+            treat_dominant_as_present: If True, treat dominant (2) same as present (1) for multiclass metrics.
+                                      Default is True (1 and 2 are considered equivalent).
         """
         self._ground_truth = ground_truth
         self._min_support = min_support
         self._min_frequency_threshold = min_frequency_threshold
+        self._treat_dominant_as_present = treat_dominant_as_present
         
         # Calculate category frequencies in ground truth
         self._category_frequencies = self._calculate_category_frequencies()
@@ -138,12 +143,19 @@ class MetricsCalculator:
             video.video_id: video for video in ground_truth.videos
         }
         
-        # Also build lookup by normalized video_id (without username prefix)
+        # Build lookup by normalized video_id (username_videoid format)
         self._gt_by_normalized_id: Dict[str, VideoAnnotation] = {}
         for video in ground_truth.videos:
-            # Handle both "username_videoid" and plain "videoid" formats
-            normalized = self._normalize_video_id(video.video_id)
+            normalized = normalize_video_id(video.video_id)
             self._gt_by_normalized_id[normalized] = video
+            
+            # Also index by numeric ID only for fallback matching
+            parts = normalized.rsplit('_', 1)
+            if len(parts) == 2 and parts[1].isdigit():
+                numeric_id = parts[1]
+                # Only add if not conflicting with another video
+                if numeric_id not in self._gt_by_normalized_id:
+                    self._gt_by_normalized_id[numeric_id] = video
         
         logging.info(
             f"MetricsCalculator initialized with {len(ground_truth.videos)} ground truth videos"
@@ -196,36 +208,14 @@ class MetricsCalculator:
                 excluded.append(category)
         return excluded
     
-    def _normalize_video_id(self, video_id: str) -> str:
-        """
-        Normalize video_id for matching.
-        
-        Handles formats like:
-        - "username_7441889182883829025" -> "7441889182883829025"
-        - "7441889182883829025" -> "7441889182883829025"
-        - "gs://bucket/username_video.mp4" -> extracts video portion
-        """
-        # Remove path if present
-        if '/' in video_id:
-            video_id = video_id.split('/')[-1]
-        
-        # Remove file extension if present
-        if '.' in video_id:
-            video_id = video_id.rsplit('.', 1)[0]
-        
-        # Extract numeric ID if in username_videoid format
-        parts = video_id.rsplit('_', 1)
-        if len(parts) == 2 and parts[1].isdigit():
-            return parts[1]
-        
-        return video_id
-    
     def align_predictions(
         self,
         predictions: PredictionSet,
     ) -> AlignmentResult:
         """
         Align predictions with ground truth by video_id.
+        
+        Matches by username_videoid format for better accuracy.
         
         Args:
             predictions: The prediction set to align
@@ -242,13 +232,13 @@ class MetricsCalculator:
                 # Skip failed predictions
                 continue
             
-            # Try exact match first
-            gt_video = self._gt_by_video_id.get(pred.video_id)
+            # Try normalized match (username_videoid format)
+            normalized_pred_id = normalize_video_id(pred.video_id)
+            gt_video = self._gt_by_normalized_id.get(normalized_pred_id)
             
-            # Try normalized match
+            # Try exact match next
             if gt_video is None:
-                normalized_id = self._normalize_video_id(pred.video_id)
-                gt_video = self._gt_by_normalized_id.get(normalized_id)
+                gt_video = self._gt_by_video_id.get(pred.video_id)
             
             if gt_video is not None:
                 aligned_pairs.append((pred, gt_video))
@@ -320,9 +310,17 @@ class MetricsCalculator:
                     y_true.append(1 if gt_value == -1 else 0)
                     y_pred.append(1 if pred_value == -1 else 0)
                 else:  # combined
-                    # Multi-class: keep original values
-                    y_true.append(gt_value)
-                    y_pred.append(pred_value)
+                    # Multi-class: optionally treat dominant (2) as present (1)
+                    if self._treat_dominant_as_present:
+                        # Normalize: 2 -> 1, keep others as-is
+                        gt_normalized = 1 if gt_value == 2 else gt_value
+                        pred_normalized = 1 if pred_value == 2 else pred_value
+                        y_true.append(gt_normalized)
+                        y_pred.append(pred_normalized)
+                    else:
+                        # Keep original values
+                        y_true.append(gt_value)
+                        y_pred.append(pred_value)
             
             # Calculate metrics
             if value_type in {"endorsed", "conflict"}:
@@ -336,7 +334,8 @@ class MetricsCalculator:
             elif value_type == "conflict":
                 support = sum(1 for v in y_true if v == 1)
             else:
-                support = len(y_true)
+                # For combined: support is count of non-zero (endorsed OR conflict) in ground truth
+                support = sum(1 for v in y_true if v != 0)
             
             category_metrics[category] = CategoryResult(
                 category=category,
@@ -435,13 +434,32 @@ class MetricsCalculator:
             if metrics.support >= self._min_support
         }
         
+        # Track excluded categories for logging
+        excluded_by_support = [
+            cat for cat in category_metrics
+            if category_metrics[cat].support < self._min_support
+        ]
+        excluded_by_frequency = []
+        
         # Also filter by frequency threshold if set
         if self._min_frequency_threshold > 0.0 and value_type in {"endorsed", "conflict"}:
-            valid_categories = {
-                cat: metrics
-                for cat, metrics in valid_categories.items()
-                if self._category_frequencies.get(cat, {}).get(value_type, 0.0) >= self._min_frequency_threshold
-            }
+            for cat in list(valid_categories.keys()):
+                freq = self._category_frequencies.get(cat, {}).get(value_type, 0.0)
+                if freq < self._min_frequency_threshold:
+                    excluded_by_frequency.append((cat, freq))
+                    del valid_categories[cat]
+        
+        # Log excluded categories
+        if excluded_by_support:
+            logging.debug(
+                f"[{value_type}] Excluded {len(excluded_by_support)} categories by min_support={self._min_support}: "
+                f"{excluded_by_support}"
+            )
+        if excluded_by_frequency:
+            logging.info(
+                f"[{value_type}] Excluded {len(excluded_by_frequency)} categories by frequency < {self._min_frequency_threshold:.1%}: "
+                f"{[(cat, f'{freq:.2%}') for cat, freq in excluded_by_frequency]}"
+            )
         
         if not valid_categories:
             return AggregateResult(

@@ -3,12 +3,15 @@
 import csv
 import json
 import os
+import logging
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Dict
 import random
 
 from .models import VideoAnnotation, GroundTruthDataset
 from .video_id_utils import normalize_video_id
+
+logger = logging.getLogger(__name__)
 
 
 # The 19 annotation categories based on Schwartz's value framework
@@ -74,6 +77,18 @@ class GroundTruthLoader:
         'conflict': -1,     # Conflict value
         'present': 1,       # Present/endorsed
         'dominant': 2,      # Dominant/strongly endorsed
+        '-1': -1,
+        '0': 0,
+        '1': 1,
+        '2': 2,
+        'None': 0,
+        'none': 0,
+        'null': 0,
+        'NULL': 0,
+        "{'present': 1}": 1,
+        "{'absent': 0}": 0,
+        "{'conflict': -1}": -1,
+        "{'dominant': 2}": 2,
     }
     
     def __init__(
@@ -210,6 +225,35 @@ class GroundTruthLoader:
             if first_row is None:
                 return videos
             
+            # Build case-insensitive column mapping for TikTok format
+            # Maps lowercase category name -> actual column name in CSV
+            column_mapping: Dict[str, str] = {}
+            for col in first_row.keys():
+                # Check for TikTok value columns pattern: 1_Value1_{Category}_values
+                if col.startswith('1_Value1_') and col.endswith('_values'):
+                    # Extract category part
+                    category_part = col[9:-7]  # Remove '1_Value1_' prefix and '_values' suffix
+                    column_mapping[category_part.lower()] = col
+            
+            # Log detected columns
+            logger.info(f"Detected {len(column_mapping)} value columns in CSV")
+            
+            # Check for category name mismatches
+            for category in ANNOTATION_CATEGORIES:
+                expected_col = f'1_Value1_{category}_values'
+                if expected_col not in first_row:
+                    # Try case-insensitive match
+                    lower_category = category.lower()
+                    if lower_category in column_mapping:
+                        actual_col = column_mapping[lower_category]
+                        if actual_col != expected_col:
+                            logger.warning(
+                                f"Column name case mismatch: expected '{expected_col}', "
+                                f"found '{actual_col}'"
+                            )
+                    else:
+                        logger.warning(f"Column not found for category '{category}'")
+            
             # Reset to beginning
             f.seek(0)
             reader = csv.DictReader(f)
@@ -235,15 +279,36 @@ class GroundTruthLoader:
                         # Assume has sound for TikTok videos
                         has_sound = True
                         
-                        # Extract annotations
+                        # Extract annotations with case-insensitive matching
                         annotations = {}
                         for category in ANNOTATION_CATEGORIES:
-                            # Try different column name formats
+                            # Try exact column name first
                             col_name = f'1_Value1_{category}_values'
                             value_str = row.get(col_name, '').strip()
                             
+                            # If not found, try case-insensitive match
+                            if not value_str and col_name not in row:
+                                lower_category = category.lower()
+                                if lower_category in column_mapping:
+                                    actual_col = column_mapping[lower_category]
+                                    value_str = row.get(actual_col, '').strip()
+                            
                             # Convert text value to numeric
                             numeric_value = self._convert_value(value_str)
+                            
+                            # Log unexpected values (first occurrence only per category)
+                            if numeric_value is None and value_str:
+                                if not hasattr(self, '_logged_unexpected_values'):
+                                    self._logged_unexpected_values = set()
+                                key = (category, value_str)
+                                if key not in self._logged_unexpected_values:
+                                    logger.warning(
+                                        f"Unexpected value '{value_str}' for category '{category}' "
+                                        f"in row {row_num}. Expected: '', 'absent', 'conflict', "
+                                        f"'present', 'dominant', or numeric -1, 0, 1, 2"
+                                    )
+                                    self._logged_unexpected_values.add(key)
+                            
                             annotations[category] = numeric_value
                     
                     else:

@@ -11,3 +11,6 @@
 /.specify
 /.vscode
 /.github
+/*.pyc
+/*.json
+/*.csv

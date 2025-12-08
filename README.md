@@ -561,7 +561,7 @@ See `examples/evaluation_config.yaml` for a fully documented example.
 |-------|------|---------|-------------|
 | `sample_size` | integer | null | Number of videos to sample (null = all) |
 | `random_seed` | integer | null | Seed for reproducible sampling |
-| `min_frequency_threshold` | float | 0.01 | Min category frequency for aggregate metrics |
+| `min_frequency_threshold` | float | 0.05 | Min category frequency for aggregate metrics |
 | `parallel_execution` | boolean | true | Enable parallel prediction |
 | `max_workers` | integer | 4 | Maximum parallel workers |
 

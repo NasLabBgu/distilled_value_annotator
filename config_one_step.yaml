@@ -1,0 +1,53 @@
+# Video Annotation Pipeline Configuration - One-Step Mode
+# This file demonstrates the one-step mode that processes videos directly to annotations
+# without generating intermediate movie scripts.
+
+# Google Cloud Storage Configuration
+gcs:
+  # Name of the GCS bucket containing videos and where outputs will be saved
+  bucket_name: "videos-scripts-and-annotations"
+  
+  # Path prefix in the bucket where video files are located
+  # Videos should be in MP4 format
+  video_source_path: "videos/POC_videos"
+  
+  # script_output_path is not needed for one-step mode
+  
+  # Full path (including filename) where the final CSV output will be saved
+  csv_output_path: "output/POC_results/one_step_result.csv"
+
+# LLM Model Configuration
+model:
+  # Vertex AI model name to use for video-to-annotation
+  # Recommended: gemini-1.5-pro-002 or gemini-2.5-pro
+  name: "gemini-2.5-pro"
+  
+  # Maximum number of retry attempts for failed API calls
+  # Uses exponential backoff between retries
+  max_retries: 4
+  
+  # Base delay in seconds for retry backoff calculation
+  # Actual delay = retry_delay * (2 ^ attempt) + random(0, 1)
+  retry_delay: 40
+  
+  # Delay in seconds between consecutive API requests
+  # Helps avoid rate limiting issues
+  request_delay: 3
+
+# Pipeline Execution Configuration
+pipeline:
+  # Pipeline mode:
+  #   - "one_step": Direct video to annotations (no intermediate scripts)
+  #   - "two_step": Traditional video -> script -> annotations flow
+  mode: "one_step"
+  
+  # Note: 'stage' and 'save_scripts' settings are ignored in one-step mode
+  # They only apply to two-step mode
+
+# Safety Settings for LLM
+# Options: BLOCK_NONE, BLOCK_ONLY_HIGH, BLOCK_MEDIUM_AND_ABOVE, BLOCK_LOW_AND_ABOVE
+safety_settings:
+  harassment: "BLOCK_NONE"
+  hate_speech: "BLOCK_NONE"
+  sexually_explicit: "BLOCK_NONE"
+  dangerous_content: "BLOCK_NONE"

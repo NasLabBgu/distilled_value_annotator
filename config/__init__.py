@@ -81,6 +81,11 @@ class PipelineConfig:
         return self._config.get('pipeline', {}).get('stage', 'both')
     
     @property
+    def pipeline_mode(self) -> str:
+        """Get the pipeline mode ('one_step' or 'two_step'). Default is 'two_step'."""
+        return self._config.get('pipeline', {}).get('mode', 'two_step')
+    
+    @property
     def save_scripts(self) -> bool:
         """Get whether to save intermediate scripts."""
         return self._config.get('pipeline', {}).get('save_scripts', False)
@@ -139,6 +144,10 @@ class PipelineConfig:
         valid_stages = ['both', 'video_to_script', 'script_to_annotation']
         if self.stage_to_run not in valid_stages:
             errors.append(f"Pipeline stage must be one of {valid_stages}, got '{self.stage_to_run}'")
+        
+        valid_modes = ['one_step', 'two_step']
+        if self.pipeline_mode not in valid_modes:
+            errors.append(f"Pipeline mode must be one of {valid_modes}, got '{self.pipeline_mode}'")
         
         if not isinstance(self.save_scripts, bool):
             errors.append("Pipeline save_scripts must be a boolean")

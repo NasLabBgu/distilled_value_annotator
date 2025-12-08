@@ -21,6 +21,7 @@ class PipelineLogger:
             name: Name for the logger instance
         """
         self.logger = logging.getLogger(name)
+        self.logger.propagate = False  # Prevent duplicate log messages
         self.errors: Dict[str, List[Dict[str, str]]] = {}
         self.warnings: List[str] = []
         self.info_messages: List[str] = []

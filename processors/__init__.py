@@ -5,7 +5,7 @@ import logging
 import json
 import re
 from typing import List, Tuple, Optional, Dict
-from llm import VideoScriptLLMClient, AnnotationLLMClient
+from llm import VideoScriptLLMClient, AnnotationLLMClient, OneStepAnnotationLLMClient
 from gcs import GCSInterface
 from utils.logger import PipelineLogger
 
@@ -386,3 +386,209 @@ class ScriptToAnnotationProcessor:
         self.pipeline_logger.log_info(summary_msg)
         
         return annotations, failed_sources
+
+
+class VideoToAnnotationProcessor:
+    """
+    Processor for converting videos directly to value annotations using LLM (one-step mode).
+    Handles batch processing with retry logic and JSON parsing.
+    """
+    
+    def __init__(
+        self,
+        llm_client: OneStepAnnotationLLMClient,
+        gcs_interface: GCSInterface,
+        request_delay: int,
+        pipeline_logger: Optional[PipelineLogger] = None
+    ):
+        """
+        Initialize the video-to-annotation processor (one-step mode).
+        
+        Args:
+            llm_client: OneStepAnnotationLLMClient instance for generating annotations
+            gcs_interface: GCSInterface instance for GCS operations
+            request_delay: Delay in seconds between API requests
+            pipeline_logger: Optional PipelineLogger instance for structured error tracking
+        """
+        self.llm_client = llm_client
+        self.gcs_interface = gcs_interface
+        self.request_delay = request_delay
+        self.pipeline_logger = pipeline_logger or PipelineLogger("VideoToAnnotationProcessor")
+        
+        logging.info("VideoToAnnotationProcessor initialized")
+        self.pipeline_logger.log_info("VideoToAnnotationProcessor initialized")
+    
+    def _extract_json_and_text(self, response: str) -> Dict:
+        """
+        Extract JSON and text notes from LLM response.
+        Handles responses with JSON in markdown code blocks or plain JSON.
+        
+        Args:
+            response: Raw response string from LLM
+        
+        Returns:
+            Dictionary containing parsed JSON data and optional notes
+            Returns empty dict if parsing fails
+        """
+        try:
+            # Try to extract JSON from markdown code blocks first
+            # Pattern matches ```json ... ``` or ``` ... ```
+            json_pattern = r'```(?:json)?\s*\n?(.*?)\n?```'
+            matches = re.findall(json_pattern, response, re.DOTALL)
+            
+            json_data = None
+            
+            if matches:
+                # Try to parse the first JSON block found
+                for match in matches:
+                    try:
+                        json_data = json.loads(match.strip())
+                        break
+                    except json.JSONDecodeError:
+                        continue
+            
+            # If no JSON found in code blocks, try parsing the entire response
+            if json_data is None:
+                try:
+                    json_data = json.loads(response.strip())
+                except json.JSONDecodeError:
+                    # Try to find JSON object in the response
+                    json_obj_pattern = r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}'
+                    json_matches = re.findall(json_obj_pattern, response, re.DOTALL)
+                    
+                    for json_match in json_matches:
+                        try:
+                            json_data = json.loads(json_match)
+                            break
+                        except json.JSONDecodeError:
+                            continue
+            
+            if json_data is None:
+                error_msg = "Failed to extract JSON from response"
+                logging.error(error_msg)
+                self.pipeline_logger.log_error("video_to_annotation", "JSON parsing", error_msg)
+                return {}
+            
+            # Extract text notes if present (text outside code blocks)
+            notes = ""
+            if matches:
+                # Remove code blocks from response to get remaining text
+                text_without_code = re.sub(json_pattern, '', response, flags=re.DOTALL)
+                notes = text_without_code.strip()
+            
+            # Add notes to the JSON data if present
+            if notes and 'notes' not in json_data:
+                json_data['notes'] = notes
+            
+            return json_data
+        
+        except Exception as e:
+            error_msg = f"Error extracting JSON and text: {str(e)}"
+            logging.error(error_msg)
+            self.pipeline_logger.log_error("video_to_annotation", "JSON parsing", error_msg)
+            return {}
+    
+    def _process_single_video(self, video_uri: str) -> Optional[Dict]:
+        """
+        Process a single video directly to generate value annotations (one-step mode).
+        
+        Args:
+            video_uri: GCS URI of the video file (e.g., gs://bucket/path/video.mp4)
+        
+        Returns:
+            Dictionary containing video_id and annotation values if successful, None if failed
+        """
+        try:
+            logging.info(f"Processing video (one-step): {video_uri}")
+            self.pipeline_logger.log_info(f"Processing video (one-step): {video_uri}")
+            
+            # Extract video ID from filename
+            # Format: gs://bucket/path/@username_video_12345.mp4 -> @username_video_12345
+            filename = video_uri.split('/')[-1]
+            video_id = filename.rsplit('.', 1)[0]  # Remove extension
+            
+            # Call LLM client to generate annotations directly from video
+            response = self.llm_client.generate_annotations_from_video(video_uri)
+            
+            # Check if the result is an error message
+            if isinstance(response, str) and response.startswith("Error:"):
+                error_msg = f"Failed to generate annotations: {response}"
+                logging.error(error_msg)
+                self.pipeline_logger.log_error("video_to_annotation", video_uri, error_msg)
+                return None
+            
+            # Parse response using _extract_json_and_text
+            annotation_data = self._extract_json_and_text(response)
+            
+            if not annotation_data:
+                error_msg = "Failed to parse annotation response"
+                logging.error(error_msg)
+                self.pipeline_logger.log_error("video_to_annotation", video_uri, error_msg)
+                return None
+            
+            # Add video_id to the annotation data
+            annotation_data['video_id'] = video_id
+            
+            logging.info(f"Successfully generated annotations for {video_id}")
+            self.pipeline_logger.log_info(f"Successfully generated annotations for {video_id}")
+            return annotation_data
+        
+        except Exception as e:
+            error_msg = str(e)
+            logging.error(f"Error processing video {video_uri}: {error_msg}")
+            self.pipeline_logger.log_error("video_to_annotation", video_uri, error_msg)
+            return None
+    
+    def process_videos(self, video_uris: List[str]) -> Tuple[List[Dict], List[str]]:
+        """
+        Process multiple videos directly to generate value annotations (one-step mode).
+        
+        Args:
+            video_uris: List of GCS URIs for video files
+        
+        Returns:
+            Tuple of (annotations, failed_uris)
+            - annotations: list of annotation dictionaries
+            - failed_uris: list of video URIs that failed to process
+        """
+        annotations = []
+        failed_uris = []
+        total_videos = len(video_uris)
+        
+        logging.info(f"Starting batch processing of {total_videos} videos (one-step mode)")
+        self.pipeline_logger.log_info(f"Starting batch processing of {total_videos} videos (one-step mode)")
+        
+        for idx, video_uri in enumerate(video_uris, 1):
+            progress_msg = f"Progress: {idx}/{total_videos} - Processing {video_uri}"
+            logging.info(progress_msg)
+            self.pipeline_logger.log_info(progress_msg)
+            
+            # Process single video
+            annotation = self._process_single_video(video_uri)
+            
+            if annotation is None:
+                # Track failure
+                failed_uris.append(video_uri)
+                warning_msg = f"Failed to process video {idx}/{total_videos}: {video_uri}"
+                logging.warning(warning_msg)
+                self.pipeline_logger.log_warning(warning_msg)
+            else:
+                # Add successful annotation
+                annotations.append(annotation)
+                success_msg = f"Successfully processed video {idx}/{total_videos}"
+                logging.info(success_msg)
+                self.pipeline_logger.log_info(success_msg)
+            
+            # Apply delay between requests (except after the last video)
+            if idx < total_videos:
+                logging.debug(f"Waiting {self.request_delay} seconds before next request...")
+                time.sleep(self.request_delay)
+        
+        # Log summary
+        success_count = len(annotations)
+        failure_count = len(failed_uris)
+        summary_msg = f"Batch processing complete: {success_count} successful, {failure_count} failed"
+        logging.info(summary_msg)
+        self.pipeline_logger.log_info(summary_msg)
+        
+        return annotations, failed_uris

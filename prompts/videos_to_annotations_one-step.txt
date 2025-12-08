@@ -1,0 +1,421 @@
+you are given a tiktok movie
+
+The task consists of annotating TikTok posts for the 19 refined human values as identified by
+Schwartz (1992) and Schwartz et al. (2012). Human values represent guiding principles in
+people’s lives. Basic human values are recognized across all cultures and are therefore useful
+to understand the principles being conveyed in various social media contexts.
+Annotations are to be made at the TikTok post level. This includes the video, the video&
+caption, the sound track, and the wording and other visual elements layered on the video. It
+is possible that a post will portray several values. In this case, all of them will be marked. It is
+also possible that some of the values will be more dominant then others. If a value is
+dominant it will be marked as 2, if a value appears in the post but is not dominant it will be
+marked as 1. If a value does not appear in the post, it will be marked zero. If the content of
+the post is contrary to a value, it will be marked as -1.
+
+
+VALUE CONCEPTUAL DEFINITIONS IN TERMS OF MOTIVATIONAL GOALS
+
+
+SELF-DIRECTION–THOUGHT Freedom to cultivate one’s own ideas and abilities
+SELF-DIRECTION–ACTION Freedom to determine one’s own actions
+STIMULATION Excitement, novelty, and change
+HEDONISM Pleasure and sensuous gratification
+ACHIEVEMENT Success according to social standards
+POWER–DOMINANCE Power through exercising control over people
+POWER–RESOURCES Power through control of material and social resources
+FACE Security and power through maintaining one’s public image and avoiding humiliation
+SECURITY–PERSONAL Safety in one’s immediate environment
+SECURITY–SOCIETAL Safety and stability in the wider society
+TRADITION Maintaining and preserving cultural, family, or religious traditions
+CONFORMITY–RULES Compliance with rules, laws, and formal obligations
+CONFORMITY–INTERPERSONAL Avoidance of upsetting or harming other people
+HUMILITY Recognizing one’s insignificance in the larger scheme of things
+BENEVOLENCE–DEPENDABILITY Being a reliable and trustworthy member of the in-group
+BENEVOLENCE–CARING Devotion to the welfare of in-group members
+UNIVERSALISM–CONCERN Commitment to equality, justice, and protection for all people
+UNIVERSALISM–NATURE Preservation of the natural environment
+UNIVERSALISM–TOLERANCE Acceptance and understanding of those who are different from oneself
+
+
+
+Description of Values and their Label:
+In the following examples, we first describe how a specific refined value may be expressed in
+Posts, and then provide specific examples from TikTok. This annotation does not exclude other values that may be expressed in the post.
+
+
+SELF-DIRECTION-THOUGHT
+Personal motivation: It is important to be creative, forming own opinions, be unique, have
+original ideas, learn things for oneself and improve own abilities.
+The focus of this value is on developing own ideas, wanting to know more and discovering.
+Example 1:
+“A young child is flipping through the pages of a storybook. At some point, the child comes to
+a picture she finds interesting and requests the name of the object from the caregiver.”
+Value label: 1 or 2 depending on other values in the post.
+Examples 2-3:
+An influencer saying that the music he listens to is chosen by anther person
+Influencers asking the followers to choose their “colure pallet”.
+Value label: -1
+
+SELF-DIRECTION-ACTION
+Personal motivation: It is important to make own decisions about life, being independent
+and having the freedom to choose.
+The focus of this value in contrast to the SELF-DIRECTION - THOUGHT aspect is to determine an
+action, rather than a conviction or thought.
+Example 1:
+Gamers are planning the actions they will take to sabotage their opponents.
+A DIY and crafts influencer is planning and explaining the stages of their artwork.
+Value label: 1 or 2 depending on other values in the posts, and the dominance of the action
+in the post.
+Example 2:
+An influencer changing their behavior by instructions from a director
+Value label: -1
+Example 3:
+An influencer is dressing according to a color palette set by their followers.
+ Value label: -1
+
+STIMULATION
+Personal motivation: Always looking for something new to do, doing something exciting,
+seeking out new experiences, innovating, being bold, seeking adventures and initiating
+change.
+Note: In contrast to HEDONISM, this value focuses on the novelty and risk aspects of behaviours
+and thoughts. It is seeking out everything that stimulates the senses.
+
+Example 1:
+The influencer is trying new things such as a new product, skydiving, bungee
+jumping, pranking etc.
+Value label: 1 or 2 depending on other values in the posts, and the dominance of the action
+in the post.
+The event described is an adrenaline-rich sport and thus, helpful for the fulfilment of the
+value.
+Value label: 1 or 2 depending on other values in the posts, and the dominance of the action
+in the post.
+Example 2:
+An influencer is talking about his/her ordinary day
+Value label: -1
+Example 3:
+An influencers is taking on their routine activities, such as getting dressed an brushing teeth.
+Value label: -1
+
+HEDONISM
+Personal motivation: Having a good time, enjoying life’s pleasures and taking advantage of
+opportunities to have fun.
+Example 1:
+An influencer is enjoying a holiday, food, attending events etc.
+Value label: 1 or 2 depending on other values in the posts, and the dominance of the action
+in the post.
+Example 2:
+An influencer is having the worst time on a hike, getting wet and injured
+Value label: -1
+Example 3:
+An influencer is having a bad time on a date
+Value label: -1
+
+ACHIEVEMENT
+Personal motivation: Being ambitious, successful and being admired for achievements and
+skills. Demonstrating competence according to social standards or in competition.
+Important dimension of achievement is that it is perceived within the social standards, and
+according to the rules of society, unlike as for the value of power. Moreover, unlike the
+value of power, Achievement focuses on performance and not on resources.
+Examples 1-3:
+Influencers tell about their journey to success, showing themselves throughout the way.
+Influencer getting awards/ recognition
+Influencer demonstrating competence in a card game
+Value label: 1 or 2 depending on other values in the posts, and the dominance of the action
+in the post.
+Examples 4-6:
+Influencer accepting defeat in a game
+Influencer arriving late for class
+Influencer talking about how s/he would work at McDonalds if Tiktok would be banned
+Value label: -1
+
+POWER – RESOURCES
+Personal motivation: Having lots of money for the power it brings, being wealthy, and
+pursuing social status.
+
+Example 1:
+An influencer awards a large prize to the winner in a competition.
+Value label: 1 or 2 depending on other values in the posts, and the dominance of the action
+in the post.
+Example 2:
+An influencer states that love and helping others is more important than money
+Value label: -1
+Example 3:
+Influencer talking about a day they lost lots of money
+Value label: -1
+
+POWER - DOMINANCE
+Personal motivation: Want people to follow you, being the most influential compared to
+others, be the one to determine directions, Taking charge.
+Examples 1-2:
+An influencer is hosting a competition between followers.
+Gamer leads a team in a competitive video game.
+Value label: 1 or 2 depending on other values in the posts, and the dominance of the action
+in the post.
+Examples 3-4:
+An influencer shares that their Tinder profile got suspended because the app thought it was fake and not really theirs.
+An influencer tries to hit on a girl, and her tall masculine boyfriend shows up.
+Value label: -1
+
+FACE
+Personal motivation: Does not want to be shamed by others, protecting public image, being
+treated with respect, honour, and dignity, maintain and gaining reputation.
+Example 1:
+An influencer is shown justifying an action he got critiqued on.
+Value label: 1 or 2 depending on other values in the posts, and the dominance of the action
+in the post.
+Example 2:
+An influencer checking to see if people recognize them.
+Value label: 1 or 2 depending on other values in the posts, and the dominance of the action
+in the post.
+Example 3:
+An influencer is making fun of another
+Value label: -1
+Example 4:
+Following a game, throwing the loser into a pool
+Value label: -1
+
+SECURITY - PERSONAL
+Personal motivation: Avoid dangerous situations, value personal security and safety, live in a
+secure environment, have a secured income, being healthy.
+SECURITY - PERSONAL refers to individuals, family and friends, (e.g., if someone talks in first-person about their
+own health). In contrast, when the post refers to any group or society as a whole, it is SECURITY-SOCIETAL.
+Examples 1-2:
+An influencer shows their daily healthy eating/ exercising routine in order to be healthy.
+An influencer is talking about how safe it is to travel somewhere.
+Value label: 1 or 2 depending on other values in the posts, and the dominance of the action
+in the post.
+Example 3:
+An influencer is taking on a risky challenge
+Value label: -1
+Example 4:
+Influencer prioritizing partying over getting a good night sleep
+Value label: -1
+Example 5:
+Influencer considers self-harm
+Value label: -1
+
+SECURITY – SOCIETAL
+Personal motivation: Country should protect itself against all threats, state should be strong,
+order and stability in society are important, including economic stability (employment, no
+recession). Importantly, the value refers not only to a society as a whole but also to socially
+defined groups like women, parents, etc. within a society. In contrast to the value of
+UNIVERSALISM-CONCERN, the value emphasises protection more from a motivation of
+“preventing”, “averting”, ”ending” dangers or threats and “preserving” security and stability.
+
+Examples 1-2:
+An influencer is talking about the safety of underprivileged children in his country.
+An influencer is shown promoting vaccination.
+Value label: 1 or 2 depending on other values in the posts, and the dominance of the action
+in the post.
+Examples3-4
+Influencer playing a song about killing people
+Value label: -1
+Gamer driving carelessly and puts others in danger
+Value label: -1
+
+CONFORMITY - RULES
+Personal motivation: Should follow authorities, follow rules even if others are not watching,
+obey laws.
+Example 1:
+An influencer talking about changing her user name to avoid a potential lawsuit, after understanding he/she might have a copyright problems.
+Value label: 1 or 2 depending on other values in the posts, and the dominance of the action
+
+Example 2:
+An influencer cheats in a game
+Value label: -1
+
+CONFORMITY - INTERPERSONAL
+Personal motivation: Avoid upsetting or annoying others, being tactful to others, showing
+courtesy, being polite, resisting temptation, respecting elders.
+Example 1:
+An influencer obeys their parent's wishes.
+Value label: 1 or 2 depending on other values in the posts, and the dominance of the action
+in the post.
+Example 2:
+Influencer setting up a friend to fall while competing in a challenge and laughing at them
+Value label: -1
+Example 3:
+Influencer is being rude to a salesperson
+Value label: -1
+
+TRADITION
+Personal motivation: Maintain traditional beliefs and values, follow the family or religious
+customs, valuing traditional practices of one’s culture.
+Examples 1-2:
+An influencer shows his/her preparations for holidays
+An influencer marrying at a church
+Value label: 1 or 2 depending on other values in the posts, and the dominance of the action
+in the post.
+Example 3:
+Male and female influencers trade cloths (man wearing a dress, woman wears a tuxedo).
+Value label: -1
+
+HUMILITY
+Personal motivation: Avoid attention, see oneself as equally important to others. Be humble and modest, hide one’s achievements and quality from the public..
+Example  1:
+An influencer conveying the massage that we should be happy and satisfied with what we
+have.
+Value label: 1 or 2 depending on other values in the posts, and the dominance of the action
+in the post.
+Example 2:
+An influencer sharing that their career is not as flashy/successful as they hoped
+Value label: 1 or 2 depending on other values in the posts, and the dominance of the action
+in the post.
+Example 3:
+An influencer bragging about the number of followers/ important friends they have.
+Value label: -1
+
+Example 4:
+Influencer is showing off their body off
+Value label: -1
+
+BENEVOLENCE – DEPENDABILITY
+Personal motivation: Be loyal to close ones, be dependable and trustworthy, especially to
+close ones (in-group). Be seen as reliable, others should have confidence in you helping close
+ones.
+A key difference between BENEVOLENCE and UNIVERSALISM is that BENEVOLENCE is primarily targeted
+towards close ones, and not towards strangers
+Examples 1-2:
+A beauty influencer sharing their tips for beauty routine to help their followers maintain a and productive beauty routine, encouraging them to trust their experience.
+An influencer sharing their trip plans to enrich their followers knowledge
+Value label: 1 or 2 depending on other values in the posts, and the dominance of the action
+in the post.
+Example 3:
+Gamer promising to help his son’s character in a game and abuses him instead.
+Value label: -1
+Example 4:
+
+BENEVOLENCE – CARING
+Personal motivation: Help and care about close ones, be responsive to family and friends.
+Actively helping and taking care of someone close.
+A key difference between BENEVOLENCE - CARING and DEPENDABILITY is that the CARING dimension is
+active about doing something, while the DEPENDABILITY is more about the perception of being
+there for someone, being trustworthy etc. Furthermore, caring here is not generic or
+universal, it is limited to specific persons or a delineated in-group within a person’s
+immediate environment. This last aspect distinguishes BENEVOLENCE – CARING from UNIVERSALISM-
+CONCERN. Similar to the two sides of security, the decisive difference between BENEVOLENCE –
+CARING and UNIVERSALISM-CONCERN is to whom the value refers. In case of individuals, family, and
+friends, it is BENEVOLENCE – CARING. In contrast, when it is applied to any social group or people
+in general, it is UNIVERSALISM-CONCERN. Thus, BENEVOLENCE – CARING will most likely not appear often
+in the text only if speaking of individual experiences.
+Example 1:
+An influencer is shown helping his/her friends or family in need (taking care of sick close
+ones, helping them with tasks etc).
+An influencers talks about how much his family and friends are important to him
+Value label: 1 or 2 depending on other values in the posts, and the dominance of the action
+in the post.
+Gamer kills his/her gaming squad
+Value label: -1
+Influencer nags at a sibling
+Value label: -1
+UNIVERSALISM – CONCERN
+Personal motivation: Protecting the weak and vulnerable, care about equal opportunities,
+treat everyone justly. In contrast to the value of SECURITY – SOCIETAL, protection and caring also
+goes beyond society boundaries. It is more generic referring to all kinds of people/ groups.
+Moreover, UNIVERSALISM-CONCERN focuses more on caring, protecting, promoting well-being,
+especially of vulnerable people from a motivation of “empathy”, “helping” or “a universal
+justice perspective”, whereas SECURITY – SOCIETAL focuses on protecting, promoting well-being
+more from a motivation of “preventing”, “averting”, “ending” dangers or threats and
+“preserving” security and stability.
+Example:
+An influencer shown supporting the cause of educating children in third world country.
+Value label: 1 or 2 depending on other values in the posts, and the dominance of the action
+in the post.
+
+UNIVERSALISM - NATURE
+Personal motivation: Care about nature for nature’s sake, protect the environment against
+pollution, destruction and other threats.
+Examples 1-2:
+An influencer is raising money for cleaning the ocean from plastic
+An influencer is shown demonstrating against pollution.
+Value label: 1 or 2 depending on other values in the posts, and the dominance of the action
+in the post.
+Example 3:
+Influencer throws trash while hiking
+Value label: -1
+UNIVERSALISM – TOLERANCE
+Personal motivation: Care about peace and harmony, listen to people with other views,
+understand even those one disagrees with.
+The key point here is that it is peace for harmony’s sake and not for the protection of the
+weak, which is covered in UNIVERSALISM - CONCERN already.
+Example 1:
+An influencer incorporates in their post a person with special needs and tells their story- conveying the message of acceptance
+Value label: 1 or 2 depending on other values in the posts, and the dominance of the action
+in the post.
+Example
+Influencer asking people if they want him to chase away black people from their surroundings
+Value label: -1
+
+
+Additional guidelines:
+No keyword-based annotation: Single words should not be annotated automatically
+as value. Only values resulting from the context are annotated. For example, if
+someone says the word responsible – it does not necessarily mean benevolence-
+dependability. It can also be other values, for example security personal in the
+context of responsibility for one’s physical well-being.
+You are coding the content of the post, not the fact that the post was created. So,
+not all posts are conveying self-direction because they were creatively created. Not
+all posts are conveying power because they promote the influencer. Look for the
+content of the specific post.
+Avoid making ideological judgements- It is hard to disassociate ourselves from our
+political, social and academic views, but annotators should try to stay as close to the
+meaning conveyed by the influencer as possible, as the goal is to annotate what is
+posted, not how it makes us as annotators feel.
+
+
+Sometimes the influencer portrays different values, even conflicting or opposite. In
+this cases- all values in the post will be annotated.
+Sometimes few characters in the videos portrays different values, they may be
+conflicting or opposite values- all the values that are shown in the video will be
+annotated. However, the main character in the video is the influencer. If the post
+refers to multiple points of view, the influencer should be taken as the lead. For
+example, if the influencer is ordered to conform to the rules by their mother, and
+chooses to disobey the rules, the code of conformity rules will be -1.
+
+
+It is important to stay as close as possible to the text. Even if a follow-up sentence
+may cast doubt on the meaning of a value or invites for further interpretation, we
+still want to highlight the value as expressed in that specific section. The idea behind
+this is that, even if a later part of the text may change the interpretation, it has still
+made the connection between an issue and a value to begin with; it has made it
+salient so the understanding will be triggered in the reader. In other words, the
+value is already salient. Secondly, the reference quality mentioned in the examples is
+indicated.
+
+There is always some value in the video, dont return empty answers.
+
+at last,
+
+
+return the annotation in this format with labels as instructed:
+1_Value1_Self_Direction_Thought_values
+1_Value1_Self_Direction_Action_values
+1_Value1_Stimulation_values
+1_Value1_Hedonism_values
+1_Value1_Achievement_values
+1_Value1_Power_Resources_values
+1_Value1_Power_dominance_values
+1_Value1_Face_values
+1_Value1_Security_Personal_values
+1_Value1_Security_Social_values
+1_Value1_Conformity_Rules_values
+1_Value1_Conformity_Interpersonal_values
+1_Value1_Tradition_values
+1_Value1_Humility_values
+1_Value1_Benevolence_Dependability_values
+1_Value1_Benevolence_Care_values
+1_Value1_Universalism_Concern_values
+1_Value1_Universalism_Nature_values
+1_Value1_Universalism_Tolerance_values
+Has_sound
+
+
+the result should look like a JSON file and the notes should be returned as a text file
+
+
+possible field values:
+Has_sound: {True, False}
+1_Value1_XXXXXXXXXXXX_values: {'present', 'conflict', None}
+
+
+DONT FORGET THE FORMAT!!!

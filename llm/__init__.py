@@ -268,3 +268,78 @@ class AnnotationLLMClient(BaseLLMClient):
         
         # Use retry logic
         return self._retry_with_backoff(_generate)
+
+
+class OneStepAnnotationLLMClient(BaseLLMClient):
+    """LLM client for generating value annotations directly from videos (one-step mode)."""
+    
+    def __init__(
+        self,
+        model_name: str,
+        safety_settings: Dict[str, str],
+        max_retries: int,
+        retry_delay: int
+    ):
+        """
+        Initialize the one-step video-to-annotation LLM client.
+        
+        Args:
+            model_name: Name of the Vertex AI model to use
+            safety_settings: Dictionary of safety settings
+            max_retries: Maximum number of retry attempts
+            retry_delay: Base delay in seconds for exponential backoff
+        """
+        # Load system instructions from file
+        import os
+        instructions_path = os.path.join(
+            os.path.dirname(os.path.dirname(__file__)),
+            'prompts',
+            'videos_to_annotations_one-step.txt'
+        )
+        
+        with open(instructions_path, 'r', encoding='utf-8') as f:
+            system_instructions = f.read()
+        
+        super().__init__(
+            model_name=model_name,
+            system_instructions=system_instructions,
+            safety_settings=safety_settings,
+            max_retries=max_retries,
+            retry_delay=retry_delay
+        )
+    
+    def generate_annotations_from_video(self, video_uri: str) -> str:
+        """
+        Generate value annotations directly from a video URI (one-step mode).
+        
+        Args:
+            video_uri: GCS URI of the video file (e.g., gs://bucket/path/video.mp4)
+        
+        Returns:
+            Generated annotations as a string (JSON format), or error message if failed
+        """
+        from vertexai.generative_models import Part
+        
+        def _generate():
+            # Create video part from URI (same pattern as VideoScriptLLMClient)
+            contents = Part.from_uri(uri=video_uri, mime_type="video/mp4")
+            prompt = [
+                Part.from_text("Video: "),
+                contents,
+            ]
+            
+            # Generate content with safety settings
+            response = self.model.generate_content(
+                prompt,
+                safety_settings=self.safety_settings
+            )
+            
+            # Check if response has text
+            if response.text:
+                return response.text
+            else:
+                # Handle cases where content was blocked
+                return f"Error: Could not generate annotations for {video_uri}, {response.prompt_feedback}"
+        
+        # Use retry logic
+        return self._retry_with_backoff(_generate)

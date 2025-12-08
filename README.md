@@ -1,6 +1,6 @@
 # Video Annotation Pipeline
 
-A Python-based pipeline for processing TikTok videos through a two-stage process: converting videos to movie scripts using Google's Gemini LLM, then extracting 19 human value annotations based on Schwartz's value framework.
+A Python-based pipeline for processing TikTok videos to extract 19 human value annotations based on Schwartz's value framework. Supports two modes: a **two-step process** (video → script → annotations) or a faster **one-step mode** (video → annotations directly).
 
 ## Overview
 
@@ -8,12 +8,12 @@ The pipeline processes videos stored in Google Cloud Storage (GCS) and outputs a
 
 ### Key Features
 
-- **Two-stage processing**: Video → Movie Script → Value Annotations
+- **Two processing modes**: Choose between two-step (via scripts) or one-step (direct) annotation
 - **Flexible execution**: Run complete pipeline or individual stages
 - **Robust error handling**: Exponential backoff retry logic with configurable delays
 - **Cloud-native**: Built for Google Cloud Platform with GCS and Vertex AI
 - **Configurable**: YAML-based configuration for all pipeline parameters
-- **Optional script storage**: Save intermediate scripts or process in-memory
+- **Optional script storage**: Save intermediate scripts or process in-memory (two-step mode)
 
 ## Table of Contents
 
@@ -154,8 +154,9 @@ safety_settings:
 
 | Option | Type | Required | Description |
 |--------|------|----------|-------------|
-| `stage` | string | Yes | Which stage(s) to run: "both", "video_to_script", or "script_to_annotation" |
-| `save_scripts` | boolean | Yes | Whether to save intermediate scripts to GCS |
+| `mode` | string | No | Pipeline mode: "one_step" (direct) or "two_step" (via scripts). Default: "two_step" |
+| `stage` | string | Yes* | Which stage(s) to run: "both", "video_to_script", or "script_to_annotation" (*ignored in one_step mode) |
+| `save_scripts` | boolean | Yes* | Whether to save intermediate scripts to GCS (*only applies to two_step mode) |
 
 #### Safety Settings
 
@@ -215,6 +216,43 @@ python main.py --config config.yaml
    pipeline:
      stage: "script_to_annotation"
    ```
+
+### One-Step Mode (Direct Video to Annotations)
+
+For faster processing without intermediate script generation, use one-step mode:
+
+```yaml
+# One-step mode configuration
+gcs:
+  bucket_name: "your-bucket-name"
+  video_source_path: "path/to/videos/"
+  csv_output_path: "path/to/output.csv"
+
+model:
+  name: "gemini-1.5-pro-002"
+  max_retries: 4
+  retry_delay: 40
+  request_delay: 3
+
+pipeline:
+  mode: "one_step"  # Direct video to annotations (no scripts)
+
+safety_settings:
+  harassment: "BLOCK_NONE"
+  hate_speech: "BLOCK_NONE"
+  sexually_explicit: "BLOCK_NONE"
+  dangerous_content: "BLOCK_NONE"
+```
+
+**Benefits of one-step mode:**
+- **Faster processing**: Single LLM call per video instead of two
+- **Lower costs**: Reduced API usage
+- **Simpler workflow**: No intermediate artifacts
+
+**When to use two-step mode instead:**
+- You need to review/edit intermediate scripts
+- You want to reprocess annotations without re-processing videos
+- You need the detailed movie script output
 
 ## Pipeline Stages
 

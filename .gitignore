@@ -14,3 +14,7 @@
 /*.pyc
 /*.json
 /*.csv
+/__pycache__
+/gemini-1.5_evaluation_results
+/manual_tests_results__pycache__/
+*.pyc

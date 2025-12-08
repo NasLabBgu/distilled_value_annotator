@@ -94,6 +94,22 @@ def print_execution_summary(summary: dict):
         if csv_saved and csv_path:
             print(f"CSV Location: {csv_path}")
     
+    elif stage == 'one_step':
+        # One-step pipeline summary (video directly to annotations)
+        total_videos = summary.get('total_videos', 0)
+        successful_annotations = summary.get('successful_annotations', 0)
+        failed_videos = summary.get('failed_videos', [])
+        csv_saved = summary.get('csv_saved', False)
+        csv_path = summary.get('csv_path', '')
+        
+        print(f"Videos Processed: {successful_annotations}/{total_videos}")
+        if failed_videos:
+            print(f"Failed Videos: {len(failed_videos)}")
+        
+        print(f"CSV Saved: {'Yes' if csv_saved else 'No'}")
+        if csv_saved and csv_path:
+            print(f"CSV Location: {csv_path}")
+    
     elif stage == 'video_to_script':
         # Video-to-script stage summary
         total_videos = summary.get('total_videos', 0)
@@ -187,7 +203,10 @@ def main():
         
         # Run the pipeline
         print("\nStarting pipeline execution...")
-        print(f"Stage to run: {config.stage_to_run}")
+        if config.pipeline_mode == 'one_step':
+            print("Mode: one_step (direct video to annotations)")
+        else:
+            print(f"Stage to run: {config.stage_to_run}")
         print()
         
         try:
@@ -224,6 +243,14 @@ def main():
                 return 0
             else:
                 print("\nScript-to-annotation stage completed but no annotations were generated.")
+                return 1
+        elif summary.get('stage') == 'one_step':
+            # For one-step mode, check if we got any annotations
+            if summary.get('successful_annotations', 0) > 0:
+                print("\nOne-step pipeline completed successfully!")
+                return 0
+            else:
+                print("\nOne-step pipeline completed but no annotations were generated.")
                 return 1
         else:
             print("\nPipeline completed with unknown status.")
